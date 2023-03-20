@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
-  getCurrentProduct,
+  getcurrentProduct,
+  getcurrentProductId,
   getError,
   getProducts,
   getShowProductCode,
@@ -27,7 +28,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   constructor(private store: Store<State>) {}
 
   ngOnInit(): void {
-    this.selectedProduct$ = this.store.select(getCurrentProduct);
+    this.selectedProduct$ = this.store.select(getcurrentProduct);
 
     this.errorMessage$ = this.store.select(getError);
 
@@ -49,6 +50,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   productSelected(product: Product): void {
-    this.store.dispatch(ProductActions.setCurrentProduct({ product }));
+    this.store.dispatch(
+      ProductActions.setCurrentProduct({ currentProductId: product.id })
+    );
   }
 }
