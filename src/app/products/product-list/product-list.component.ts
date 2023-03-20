@@ -2,14 +2,15 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
   getCurrentProduct,
+  getError,
+  getProducts,
   getShowProductCode,
   State,
 } from '../state/product.reducer';
 import * as ProductActions from '../state/product.actions';
 
-
 import { Product } from '../product';
-import { ProductService } from '../product.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'pm-product-list',
@@ -18,36 +19,26 @@ import { ProductService } from '../product.service';
 })
 export class ProductListComponent implements OnInit, OnDestroy {
   pageTitle = 'Products';
-  errorMessage: string;
-  displayCode: boolean;
-  products: Product[];
-  // Used to highlight the selected product in the list
-  selectedProduct: Product | null;
+  products$: Observable<Product[]>;
+  selectedProduct$: Observable<Product>;
+  displayCode$: Observable<boolean>;
+  errorMessage$: Observable<string>;
 
-  constructor(
-    private store: Store<State>,
-    private productService: ProductService
-  ) {}
+  constructor(private store: Store<State>) {}
 
   ngOnInit(): void {
-    this.productService.getProducts().subscribe({
-      next: (products: Product[]) => (this.products = products),
-      error: (err) => (this.errorMessage = err),
-    });
+    this.selectedProduct$ = this.store.select(getCurrentProduct);
 
-    // TODO: add unsubscribe (later module will discuss different strategies)
-    this.store.select(getCurrentProduct).subscribe(
-      currentProduct => this.selectedProduct = currentProduct
-    )
-    this.store.select(getShowProductCode).subscribe((showProductCode) => {
-      if (showProductCode) {
-        this.displayCode = showProductCode;
-      }
-    });
+    this.errorMessage$ = this.store.select(getError);
+
+    this.products$ = this.store.select(getProducts);
+
+    this.store.dispatch(ProductActions.loadProducts());
+
+    this.displayCode$ = this.store.select(getShowProductCode);
   }
 
-  ngOnDestroy(): void {
-  }
+  ngOnDestroy(): void {}
 
   checkChanged(): void {
     this.store.dispatch(ProductActions.toggleProductCode());
